@@ -71,6 +71,7 @@ type
     function IsSwaggerReadOnly: Boolean;
 
     function ArrayType: string;
+    function ArrayTypeClass: TClass;
     function ListType: string;
     function ListTypeClass: TClass;
 
@@ -207,6 +208,21 @@ begin
   Result := EmptyStr;
   if (IsArray) then
     Result := TRttiDynamicArrayType(Self.PropertyType).ElementType.Name;
+end;
+
+function TGBSwaggerRTTIPropertyHelper.ArrayTypeClass: TClass;
+var ElementType : TRttiType;
+begin
+  result := nil;
+  if (IsArray) then
+  begin
+    ElementType := TRttiDynamicArrayType(Self.PropertyType).ElementType;
+    if ElementType.TypeKind = tkClass then
+    begin
+      TGBSwaggerRTTI.GetInstance.FindType(ElementType.Name);
+      Result := ElementType.AsInstance.MetaclassType;
+    end;
+  end;
 end;
 
 function TGBSwaggerRTTIPropertyHelper.GetAttribute<T>: T;
@@ -662,6 +678,13 @@ begin
     begin
       SetLength(Result, Length(Result) + 1);
       Result[Length(Result) - 1] := GetProperties[I].ListTypeClass;
+      Continue;
+    end;
+    
+    if (GetProperties[i].IsArray) and (GetProperties[i].ArrayTypeClass<>nil) then
+    begin
+      SetLength(Result, Length(result) + 1);
+      Result[Length(Result) - 1] := GetProperties[i].ArrayTypeClass;
       Continue;
     end;
   end;

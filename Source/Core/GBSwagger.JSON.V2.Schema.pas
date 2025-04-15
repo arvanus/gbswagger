@@ -139,7 +139,21 @@ begin
 end;
 
 function TGBSwaggerJSONV2Schema.JSONPropertyPairArray(AProperty: TRttiProperty): TJSONPair;
+var
+  classType: TClass;
+  className: string;
 begin
+  classType := AProperty.ArrayTypeClass;
+  if (classType<>nil) then
+  begin
+    className := FSchema.&End.SchemaName(classType);
+
+    result := TJSONPair.Create(
+        'items', TJSONObject.Create
+                    .AddPair('$ref', '#/definitions/' + className)
+    );
+    exit;
+  end;
   Result := TJSONPair.Create('items', TJSONObject.Create
     .AddPair('type', AProperty.ArrayType));
 end;
